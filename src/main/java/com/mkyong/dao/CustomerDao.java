@@ -19,10 +19,9 @@ public class CustomerDao
     private JdbcTemplate jdbcTemplate;
 
     public List<Customer> getCustomersIn(String ids) {
-        final String sql = "SELECT * FROM CUSTOMER AS c WHERE c.ID IN (" + ids + ")";
-        final String sqlGen = generateTupledQuery("CUSTOMER", ids);
-        //String u = union("CUSTOMER", ids);
-        return jdbcTemplate.query(sqlGen, ((resultSet, i) -> {
+        final String sql = "SELECT * FROM CUSTOMER c WHERE c.ID IN (" + ids + ")";   // Produserer ORA-01795 Maximum number....
+        //String sql = union("CUSTOMER", ids);                                       // OK
+        return jdbcTemplate.query(sql, ((resultSet, i) -> {
             return new Customer(
                 resultSet.getLong("ID"),
                 resultSet.getString("NAME"),
@@ -32,12 +31,6 @@ public class CustomerDao
         }));
     }
 
-    public List<Long> getCustomerIdsIn(String ids) {
-        final String sql = "SELECT * FROM CUSTOMER AS c WHERE c.ID IN (" + ids + ")";
-        final String sqlGen = ge("CUSTOMER", ids);
-        return jdbcTemplate.queryForList(sqlGen, Long.class);
-    }
-
     String union(String table, String ids) {
         StringJoiner sj = new StringJoiner(" UNION ");
         List<List<String>> part = ListUtils.partition(Arrays.asList(ids.split(",")), 999);
@@ -45,15 +38,5 @@ public class CustomerDao
             sj.add("SELECT * FROM " + table + " WHERE ID IN (" + partition.stream().collect(Collectors.joining(",")) + ")");
         }
         return sj.toString();
-    }
-
-    String generateTupledQuery(String table, String ids) {
-        String tupleIdList = Arrays.stream(ids.split(",")).map(id -> "(" + id + ", 0)").collect(Collectors.joining(","));
-        return "SELECT * FROM " + table + " WHERE (ID, 0) IN (" + tupleIdList + ")";
-    }
-
-    String ge(String table, String ids) {
-        String tupleIdList = Arrays.stream(ids.split(",")).map(id -> "(" + id + ", 0)").collect(Collectors.joining(","));
-        return "SELECT ID FROM " + table + " WHERE (ID, 0) IN (" + tupleIdList + ")";
     }
 }
