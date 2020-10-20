@@ -19,8 +19,8 @@ public class CustomerDao
     private JdbcTemplate jdbcTemplate;
 
     public List<Customer> getCustomersIn(String ids) {
-        final String sql = "SELECT * FROM CUSTOMER c WHERE c.ID IN (" + ids + ")";   // Produserer ORA-01795 Maximum number....
-        //String sql = union("CUSTOMER", ids);                                       // OK
+        final String sql = "SELECT * FROM CUSTOMER c WHERE c.ID IN (" + ids + ")";   // Er akkurat som i fobid-backend og gir "ORA-01795 Maximum number...."-feilen
+        //final String sql = union("CUSTOMER", ids);                                       // Denne gir ingen feilmeldinger.
         return jdbcTemplate.query(sql, ((resultSet, i) -> {
             return new Customer(
                 resultSet.getLong("ID"),
